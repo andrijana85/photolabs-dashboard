@@ -3,33 +3,42 @@ import Loading from "./Loading";
 import Panel from "./Panel";
 import classnames from "classnames";
 
+import {
+  getTotalPhotos,
+  getTotalTopics,
+  getUserWithMostUploads,
+  getUserWithLeastUploads
+ } from "helpers/selectors";
+ 
 const data = [
   {
     id: 1,
     label: "Total Photos",
-    value: 10,
+    getValue: getTotalPhotos,
   },
   {
     id: 2,
     label: "Total Topics",
-    value: 4,
+    getValue: getTotalTopics,
   },
   {
     id: 3,
     label: "User with the most uploads",
-    value: "Allison Saeng",
+    getValue: getUserWithMostUploads,
   },
   {
     id: 4,
     label: "User with the least uploads",
-    value: "Lukas Souza",
+    getValue: getUserWithLeastUploads,
   },
 ];
 
 class Dashboard extends Component {
   state = {
-    loading: false,
+    loading: true,
     focused: null,
+    photos: [],
+    topics: [],
   };
 
   selectPanel(id) {
@@ -43,6 +52,21 @@ class Dashboard extends Component {
     if (focused) {
       this.setState({ focused });
     }
+
+    const urlsPromise = [
+      "/api/photos",
+      "/api/topics",
+    ].map(url => fetch(url).then(response => response.json()));
+    
+    
+    Promise.all(urlsPromise)
+    .then(([photos, topics]) => {
+      this.setState({
+        loading: false,
+        photos: photos,
+        topics: topics
+      });
+    });
   }
 
   componentDidUpdate(previousProps, previousState) {
@@ -66,7 +90,7 @@ class Dashboard extends Component {
           key={panel.id}
           id={panel.id}
           label={panel.label}
-          value={panel.value}
+          value={panel.getValue(this.state)}
           onSelect={(e) => this.selectPanel(panel.id)}
         />
       );
@@ -75,6 +99,7 @@ class Dashboard extends Component {
     if (this.state.loading) {
       return <Loading />;
     }
+    console.log(this.state)
 
     return <main className={dashboardClasses}>{panels}</main>;
   }
