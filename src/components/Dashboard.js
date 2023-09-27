@@ -28,18 +28,34 @@ const data = [
 
 class Dashboard extends Component {
   state = {
-    loading: true,
+    loading: false,
+    focused: null,
   };
 
+  selectPanel(id) {
+    this.setState({
+     focused: id
+    });
+   }
+
   render() {
-    const dashboardClasses = classnames("dashboard");
-    const panels = data.map((panel) => {
+    const dashboardClasses = classnames("dashboard", {
+      "dashboard--focused": this.state.focused,
+    });
+
+    const panels = (
+      this.state.focused
+        ? data.filter((panel) => this.state.focused === panel.id)
+        : data
+    ).map((panel) => {
+      
       return (
         <Panel
           key={panel.id}
           id={panel.id}
           label={panel.label}
           value={panel.value}
+          selectPanel={e => this.selectPanel(panel.id)}
         />
       );
     });
@@ -48,9 +64,7 @@ class Dashboard extends Component {
       return <Loading />;
     }
 
-    return <main className={dashboardClasses}>
-      {panels}
-      </main>;
+    return <main className={dashboardClasses}>{panels}</main>;
   }
 }
 
